@@ -21,7 +21,7 @@ Here we are converting the values of `zero` in FINAL_QUANTITY to 0. We are also 
 I am making the assumption that you cannot have a partial unit of quantity. It could be the case where that represents something like weight.
 for example if you are buying produce by the pound, but I am assuming that is not the case due to the previous query. That query shows all the
 product info for the barcodes that have a decimal in their FINAL_QUANTITY. The ROUNDing is giving the benefit of the doubt to any numbers less 
-than 1 and rounding them up, all other numbers are rounded down.
+than 1 and rounding them up, all other numbers are rounded normally.
 */
 SELECT RECEIPT_ID, USER_ID, BARCODE, PURCHASE_DATE, SCAN_DATE, STORE_NAME
 , CASE WHEN FINAL_QUANTITY = 'zero' THEN 0
