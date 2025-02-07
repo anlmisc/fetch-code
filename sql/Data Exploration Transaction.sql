@@ -2,9 +2,9 @@
 SELECT TOP 10 *
 FROM [Fetch Takehome].dbo.[transaction]
 
--- Check how many records and unique user_id, barcode, and receipt_id there are
+-- Check how many records and unique receipt_id and barcode there are
 SELECT COUNT(*) number_of_records
-, COUNT(DISTINCT CONCAT(USER_ID, ' | ', CAST(BARCODE AS BIGINT), ' | ', RECEIPT_ID)) number_of_unqiue_receipt_user_barcode
+, COUNT(DISTINCT CONCAT(RECEIPT_ID, ' | ', CAST(BARCODE AS BIGINT))) number_of_unqiue_receipt_user_barcode
 FROM [Fetch Takehome].dbo.[transaction]
 WHERE BARCODE <> '' -- included in case there was an empty cell not classified as NULL
 AND BARCODE IS NOT NULL -- certain SQL dialects exclude NULL when using DISTINCT so added just to be safe
@@ -23,7 +23,7 @@ for example if you are buying produce by the pound, but I am assuming that is no
 product info for the barcodes that have a decimal in their FINAL_QUANTITY. The ROUNDing is giving the benefit of the doubt to any numbers less 
 than 1 and rounding them up, all other numbers are rounded normally.
 */
-SELECT RECEIPT_ID, USER_ID, BARCODE, PURCHASE_DATE, SCAN_DATE, STORE_NAME
+SELECT RECEIPT_ID, BARCODE, USER_ID, PURCHASE_DATE, SCAN_DATE, STORE_NAME
 , CASE WHEN FINAL_QUANTITY = 'zero' THEN 0
 	   WHEN CAST(FINAL_QUANTITY AS FLOAT) < 1 THEN CEILING(FINAL_QUANTITY)
 	   ELSE ROUND(CAST(FINAL_QUANTITY AS FLOAT), 0) END AS FINAL_QUANTITY, FINAL_SALE
@@ -45,7 +45,7 @@ that satisfy this condition because they could be coupons (which we do not have 
 
 WITH mydata AS (
 
-SELECT RECEIPT_ID, USER_ID, BARCODE, PURCHASE_DATE, SCAN_DATE, STORE_NAME
+SELECT RECEIPT_ID, BARCODE, USER_ID, PURCHASE_DATE, SCAN_DATE, STORE_NAME
 , CASE WHEN FINAL_QUANTITY = 'zero' THEN 0
 	   WHEN CAST(FINAL_QUANTITY AS FLOAT) < 1 THEN CEILING(FINAL_QUANTITY)
 	   ELSE ROUND(CAST(FINAL_QUANTITY AS FLOAT), 0) END AS FINAL_QUANTITY, FINAL_SALE
@@ -56,17 +56,15 @@ AND BARCODE IS NOT NULL
 
 )
 
-SELECT RECEIPT_ID, USER_ID, BARCODE, PURCHASE_DATE, SCAN_DATE, STORE_NAME, MAX(FINAL_QUANTITY) AS FINAL_QUANTITY, MAX(FINAL_SALE) AS FINAL_SALE
+SELECT RECEIPT_ID, BARCODE, USER_ID, PURCHASE_DATE, SCAN_DATE, STORE_NAME, MAX(FINAL_QUANTITY) AS FINAL_QUANTITY, MAX(FINAL_SALE) AS FINAL_SALE
 INTO [Fetch Takehome].dbo.[transaction_final]
 FROM mydata
-GROUP BY RECEIPT_ID, USER_ID, BARCODE, PURCHASE_DATE, SCAN_DATE, STORE_NAME
-
-
+GROUP BY RECEIPT_ID, BARCODE, USER_ID, PURCHASE_DATE, SCAN_DATE, STORE_NAME
 
 
 -- View final table and check uniqueness of composite key
 SELECT TOP 10 *
 FROM [Fetch Takehome].dbo.[transaction_final]
 
-SELECT COUNT(*), COUNT(DISTINCT CONCAT(USER_ID, ' | ', CAST(BARCODE AS BIGINT), ' | ', RECEIPT_ID))
+SELECT COUNT(*), COUNT(DISTINCT CONCAT(RECEIPT_ID, ' | ', CAST(BARCODE AS BIGINT)))
 FROM [Fetch Takehome].dbo.[transaction_final]
